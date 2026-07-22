@@ -4,16 +4,24 @@ package domain
 import "time"
 
 type Side string
+type Market string
 
 const (
-	SideBuy  Side = "buy"
-	SideSell Side = "sell"
+	SideBuy  Side   = "buy"
+	SideSell Side   = "sell"
+	MarketUS Market = "us"
+	MarketKR Market = "kr"
 )
 
 type MarketSnapshot struct {
-	Symbol    string
-	Price     int64
-	Timestamp time.Time
+	Symbol        string
+	Market        Market
+	Price         int64
+	Timestamp     time.Time
+	MarketCap     int64
+	AverageVolume int64
+	IsETF         bool
+	Scores        map[string]float64
 }
 
 type Signal struct {

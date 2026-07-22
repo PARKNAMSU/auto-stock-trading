@@ -26,9 +26,10 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	selectedStrategy, err := strategy.New(strategy.Kind(cfg.TradingStrategy))
+	market := domain.Market(cfg.TradingMarket)
+	selectedStrategy, err := strategy.NewScoreEngineForMarket(market)
 	if err != nil {
-		logger.Error("invalid strategy", "error", err)
+		logger.Error("invalid market strategy", "error", err)
 		os.Exit(1)
 	}
 
@@ -39,8 +40,8 @@ func main() {
 		logger,
 	)
 
-	logger.Info("trader started", "mode", cfg.TradingMode, "strategy", cfg.TradingStrategy)
-	if err := engine.RunOnce(ctx, domain.MarketSnapshot{}); err != nil {
+	logger.Info("trader started", "mode", cfg.TradingMode, "market", market, "strategy", "score-engine")
+	if err := engine.RunOnce(ctx, domain.MarketSnapshot{Market: market}); err != nil {
 		logger.Error("trading cycle failed", "error", err)
 		os.Exit(1)
 	}
