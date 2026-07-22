@@ -20,6 +20,7 @@ type Config struct {
 	ClientID       string
 	ClientSecret   string
 	Account        string
+	TossBaseURL    string
 	MaxOrderAmount int64
 }
 
@@ -30,6 +31,7 @@ func Load() (Config, error) {
 		ClientID:       os.Getenv("TOSSINVEST_CLIENT_ID"),
 		ClientSecret:   os.Getenv("TOSSINVEST_CLIENT_SECRET"),
 		Account:        os.Getenv("TOSSINVEST_ACCOUNT"),
+		TossBaseURL:    valueOrDefault("TOSSINVEST_BASE_URL", "https://openapi.tossinvest.com"),
 		MaxOrderAmount: 100_000,
 	}
 

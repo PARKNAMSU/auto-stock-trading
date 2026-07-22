@@ -38,3 +38,7 @@ go test ./...
 ```
 
 실제 인증 정보는 `.env` 또는 실행 환경에만 보관하고 저장소에 커밋하지 않습니다.
+
+토스증권 API 연결에는 `TOSSINVEST_CLIENT_ID`, `TOSSINVEST_CLIENT_SECRET`을 사용합니다. 계좌 API를 호출할 때는 `GET /api/v1/accounts`가 반환한 `accountSeq`를 `TOSSINVEST_ACCOUNT`에 지정합니다. `TOSSINVEST_BASE_URL`의 기본값은 공식 실전 API인 `https://openapi.tossinvest.com`이며, 공식 문서에는 별도의 모의투자 API 서버가 정의되어 있지 않습니다. 주문 없는 모의 실행은 `TRADING_MODE=dry-run`으로 분리합니다.
+
+공통 클라이언트는 토큰 만료 전 재발급과 401 응답 시 재인증을 수행합니다. 조회 요청의 429 및 일시적인 서버 오류는 `Retry-After`와 지수 백오프를 적용해 재시도하지만, 중복 주문 위험이 있는 POST 요청은 자동 재시도하지 않습니다. 인증정보, 토큰, 계좌 식별자는 요청 로그에 기록하지 않습니다.

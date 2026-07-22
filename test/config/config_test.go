@@ -38,3 +38,18 @@ func TestLoadRejectsUnknownMarket(t *testing.T) {
 		t.Fatal("Load() accepted an unsupported market")
 	}
 }
+
+func TestLoadSeparatesTossConnectionSettings(t *testing.T) {
+	t.Setenv("TOSSINVEST_CLIENT_ID", "client-id")
+	t.Setenv("TOSSINVEST_CLIENT_SECRET", "client-secret")
+	t.Setenv("TOSSINVEST_ACCOUNT", "7")
+	t.Setenv("TOSSINVEST_BASE_URL", "https://example.test")
+
+	cfg, err := config.Load()
+	if err != nil {
+		t.Fatalf("Load(): %v", err)
+	}
+	if cfg.ClientID != "client-id" || cfg.ClientSecret != "client-secret" || cfg.Account != "7" || cfg.TossBaseURL != "https://example.test" {
+		t.Fatalf("unexpected Toss settings: %+v", cfg)
+	}
+}
