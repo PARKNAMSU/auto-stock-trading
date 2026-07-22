@@ -22,6 +22,8 @@
 go run ./cmd/trader
 ```
 
+`TRADING_STRATEGY`에 `hold`, `short-term`, `medium-term`, `long-term` 중 하나를 지정해 전략을 선택할 수 있습니다.
+
 ## 테스트
 
 ```sh

@@ -10,20 +10,22 @@ import (
 const DryRunMode = "dry-run"
 
 type Config struct {
-	TradingMode    string
-	ClientID       string
-	ClientSecret   string
-	Account        string
-	MaxOrderAmount int64
+	TradingMode     string
+	TradingStrategy string
+	ClientID        string
+	ClientSecret    string
+	Account         string
+	MaxOrderAmount  int64
 }
 
 func Load() (Config, error) {
 	cfg := Config{
-		TradingMode:    valueOrDefault("TRADING_MODE", DryRunMode),
-		ClientID:       os.Getenv("TOSSINVEST_CLIENT_ID"),
-		ClientSecret:   os.Getenv("TOSSINVEST_CLIENT_SECRET"),
-		Account:        os.Getenv("TOSSINVEST_ACCOUNT"),
-		MaxOrderAmount: 100_000,
+		TradingMode:     valueOrDefault("TRADING_MODE", DryRunMode),
+		TradingStrategy: valueOrDefault("TRADING_STRATEGY", "hold"),
+		ClientID:        os.Getenv("TOSSINVEST_CLIENT_ID"),
+		ClientSecret:    os.Getenv("TOSSINVEST_CLIENT_SECRET"),
+		Account:         os.Getenv("TOSSINVEST_ACCOUNT"),
+		MaxOrderAmount:  100_000,
 	}
 
 	if raw := os.Getenv("MAX_ORDER_AMOUNT"); raw != "" {
