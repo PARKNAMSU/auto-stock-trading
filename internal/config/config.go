@@ -1,3 +1,4 @@
+// Package config는 환경 변수에서 애플리케이션 설정을 읽고 검증합니다.
 package config
 
 import (

@@ -1,3 +1,4 @@
+// Package domain은 거래 흐름에서 공유하는 핵심 도메인 모델을 정의합니다.
 package domain
 
 import "time"

@@ -1,3 +1,4 @@
+// trader 애플리케이션을 구성하고 한 번의 거래 사이클을 실행하는 진입점입니다.
 package main
 
 import (

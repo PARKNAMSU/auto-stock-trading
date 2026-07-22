@@ -1,3 +1,4 @@
+// Package tossinvest는 토스증권 Open API와 통신하는 어댑터를 제공합니다.
 package tossinvest
 
 import (

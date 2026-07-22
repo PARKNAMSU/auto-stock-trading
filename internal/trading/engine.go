@@ -1,3 +1,4 @@
+// Package trading은 전략 평가부터 위험 검사와 주문 실행까지의 흐름을 조정합니다.
 package trading
 
 import (

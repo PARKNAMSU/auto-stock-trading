@@ -1,3 +1,4 @@
+// Package risk는 주문 실행 전에 매매 신호의 위험 조건을 검증합니다.
 package risk
 
 import (
