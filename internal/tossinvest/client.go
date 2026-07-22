@@ -50,6 +50,7 @@ type APIError struct {
 	RetryAfter time.Duration
 }
 
+// Error는 로그나 상위 오류에 서버 메시지·상세 데이터가 섞이지 않도록 상태 코드와 오류 코드만 반환합니다.
 func (e *APIError) Error() string {
 	if e.Code == "" {
 		return fmt.Sprintf("tossinvest API returned HTTP %d", e.StatusCode)
@@ -76,6 +77,7 @@ type Client struct {
 	token   accessToken
 }
 
+// accessToken은 원문 토큰과 서버가 알려준 만료 시각을 메모리에만 보관합니다.
 type accessToken struct {
 	value     string
 	tokenType string
@@ -183,6 +185,8 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	return nil, errors.New("authentication retry exhausted")
 }
 
+// send는 인증·계좌 헤더를 추가하고 멱등 요청에 한해 호출 제한 및 일시적 서버 오류를 재시도합니다.
+// 로그에는 요청 경로와 상태만 남겨 토큰과 계좌 식별자가 노출되지 않게 합니다.
 func (c *Client) send(req *http.Request, token string) (*http.Response, error) {
 	maxAttempts := 1
 	if isRetryableMethod(req.Method) {
@@ -221,6 +225,8 @@ func (c *Client) send(req *http.Request, token string) (*http.Response, error) {
 	return nil, errors.New("request retry exhausted")
 }
 
+// validToken은 사용 가능한 토큰을 반환하고, 없거나 만료가 임박했거나 서버가 거부한 토큰이면 재발급합니다.
+// tokenMu를 발급 완료까지 유지하여 동시에 여러 요청이 기존 토큰을 무효화하지 않도록 합니다.
 func (c *Client) validToken(ctx context.Context, rejected string) (string, error) {
 	c.tokenMu.Lock()
 	defer c.tokenMu.Unlock()
@@ -235,6 +241,7 @@ func (c *Client) validToken(ctx context.Context, rejected string) (string, error
 	return token.value, nil
 }
 
+// issueToken은 OAuth 2.0 Client Credentials 형식으로 새 액세스 토큰을 발급하고 만료 시각을 계산합니다.
 func (c *Client) issueToken(ctx context.Context) (accessToken, error) {
 	form := url.Values{
 		"grant_type":    {"client_credentials"},
@@ -268,6 +275,7 @@ func (c *Client) issueToken(ctx context.Context) (accessToken, error) {
 	return accessToken{value: payload.AccessToken, tokenType: payload.TokenType, expiresAt: c.now().Add(time.Duration(payload.ExpiresIn) * time.Second)}, nil
 }
 
+// sendTokenRequest는 토큰 발급 요청의 429 및 5xx 응답을 Retry-After와 백오프 정책에 따라 재시도합니다.
 func (c *Client) sendTokenRequest(req *http.Request) (*http.Response, error) {
 	for attempt := 0; attempt <= c.maxRetries; attempt++ {
 		current, err := cloneRequest(req, attempt)
@@ -296,6 +304,7 @@ func (c *Client) sendTokenRequest(req *http.Request) (*http.Response, error) {
 	return nil, errors.New("token retry exhausted")
 }
 
+// decodeAPIError는 토스증권 공통 오류 envelope를 APIError로 변환하고 응답 본문을 닫습니다.
 func decodeAPIError(resp *http.Response) *APIError {
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		return nil
@@ -317,6 +326,7 @@ func decodeAPIError(resp *http.Response) *APIError {
 	return &APIError{StatusCode: resp.StatusCode, RequestID: requestID, Code: envelope.Error.Code, Message: envelope.Error.Message, Data: envelope.Error.Data, RetryAfter: parseRetryAfter(resp.Header.Get("Retry-After"), time.Now())}
 }
 
+// decodeOAuthError는 OAuth 표준 오류 응답을 공통 APIError 형태로 변환합니다.
 func decodeOAuthError(resp *http.Response) error {
 	defer resp.Body.Close()
 	var payload struct {
@@ -327,6 +337,8 @@ func decodeOAuthError(resp *http.Response) error {
 	return &APIError{StatusCode: resp.StatusCode, RequestID: resp.Header.Get("X-Request-Id"), Code: payload.Error, Message: payload.Description, RetryAfter: parseRetryAfter(resp.Header.Get("Retry-After"), time.Now())}
 }
 
+// cloneRequest는 재시도마다 독립적인 요청과 본문을 생성합니다.
+// GetBody가 없는 스트리밍 본문은 최초 전송 이후 안전하게 재생할 수 없으므로 오류로 처리합니다.
 func cloneRequest(req *http.Request, attempt int) (*http.Request, error) {
 	clone := req.Clone(req.Context())
 	if req.Body == nil {
@@ -346,6 +358,7 @@ func cloneRequest(req *http.Request, attempt int) (*http.Request, error) {
 	return clone, nil
 }
 
+// isRetryableMethod는 자동 재시도로 중복 주문을 만들지 않는 멱등 HTTP 메서드만 허용합니다.
 func isRetryableMethod(method string) bool {
 	switch method {
 	case http.MethodGet, http.MethodHead, http.MethodOptions, http.MethodPut, http.MethodDelete:
@@ -354,6 +367,7 @@ func isRetryableMethod(method string) bool {
 	return false
 }
 
+// backoff는 지수 백오프를 상한까지 계산하고 서버의 Retry-After가 더 길면 이를 우선합니다.
 func (c *Client) backoff(attempt int, retryAfter time.Duration) time.Duration {
 	delay := c.retryBase
 	for i := 0; i < attempt && delay < c.retryMax; i++ {
@@ -368,6 +382,7 @@ func (c *Client) backoff(attempt int, retryAfter time.Duration) time.Duration {
 	return delay
 }
 
+// parseRetryAfter는 Retry-After의 초 단위 값과 HTTP 날짜 형식을 모두 대기 시간으로 변환합니다.
 func parseRetryAfter(value string, now time.Time) time.Duration {
 	if seconds, err := strconv.Atoi(strings.TrimSpace(value)); err == nil && seconds >= 0 {
 		return time.Duration(seconds) * time.Second
@@ -378,6 +393,7 @@ func parseRetryAfter(value string, now time.Time) time.Duration {
 	return 0
 }
 
+// sleepContext는 재시도 대기 중에도 호출자의 컨텍스트 취소에 즉시 반응합니다.
 func sleepContext(ctx context.Context, duration time.Duration) error {
 	if duration <= 0 {
 		return nil

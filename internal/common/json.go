@@ -8,7 +8,8 @@ import (
 	"io"
 )
 
-// EncodeJSON returns a replayable JSON request body.
+// EncodeJSON은 값을 JSON으로 직렬화하고 재전송 가능한 메모리 기반 요청 본문을 반환합니다.
+// bytes.Reader를 사용하므로 http.NewRequest가 GetBody를 구성할 수 있어 인증 및 호출 제한 재시도에 안전합니다.
 func EncodeJSON(value any) (io.Reader, error) {
 	data, err := json.Marshal(value)
 	if err != nil {
