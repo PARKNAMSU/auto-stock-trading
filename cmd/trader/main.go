@@ -10,8 +10,10 @@ import (
 
 	"auto-stock-trading/internal/config"
 	"auto-stock-trading/internal/domain"
+	"auto-stock-trading/internal/marketdata"
 	"auto-stock-trading/internal/risk"
 	"auto-stock-trading/internal/strategy"
+	"auto-stock-trading/internal/tossinvest"
 	"auto-stock-trading/internal/trading"
 )
 
@@ -27,6 +29,19 @@ func main() {
 	defer stop()
 
 	market := domain.Market(cfg.TradingMarket)
+	apiClient, err := tossinvest.NewClient(tossinvest.Config{
+		ClientID: cfg.ClientID, ClientSecret: cfg.ClientSecret,
+		BaseURL: cfg.TossBaseURL, Logger: logger,
+	})
+	if err != nil {
+		logger.Error("invalid Toss Securities API configuration", "error", err)
+		os.Exit(1)
+	}
+	collector, err := marketdata.NewCollector(apiClient, marketdata.Config{})
+	if err != nil {
+		logger.Error("create market data collector", "error", err)
+		os.Exit(1)
+	}
 	selectedStrategy, err := strategy.NewScoreEngineForMarket(market)
 	if err != nil {
 		logger.Error("invalid market strategy", "error", err)
@@ -41,8 +56,18 @@ func main() {
 	)
 
 	logger.Info("trader started", "mode", cfg.TradingMode, "market", market, "strategy", "score-engine")
-	if err := engine.RunOnce(ctx, domain.MarketSnapshot{Market: market}); err != nil {
-		logger.Error("trading cycle failed", "error", err)
+	snapshots, err := collector.Snapshots(ctx, market)
+	if err != nil {
+		logger.Error("collect market data", "error", err)
 		os.Exit(1)
+	}
+	for _, snapshot := range snapshots {
+		if snapshot.IsStale || len(snapshot.MissingFields) > 0 {
+			logger.Warn("market snapshot quality warning", "symbol", snapshot.Symbol, "stale", snapshot.IsStale, "missing_fields", snapshot.MissingFields)
+		}
+		if err := engine.RunOnce(ctx, snapshot); err != nil {
+			logger.Error("trading cycle failed", "symbol", snapshot.Symbol, "error", err)
+			os.Exit(1)
+		}
 	}
 }

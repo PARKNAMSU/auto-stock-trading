@@ -114,9 +114,11 @@ func (e *ScoreEngine) Evaluate(ctx context.Context, snapshot domain.MarketSnapsh
 		return nil, nil
 	}
 	return []domain.Signal{{
-		Symbol:   snapshot.Symbol,
-		Side:     domain.SideBuy,
-		Quantity: e.quantity,
-		Price:    snapshot.Price,
+		Symbol:     snapshot.Symbol,
+		Side:       domain.SideBuy,
+		Quantity:   e.quantity,
+		Currency:   snapshot.Currency,
+		PriceScale: snapshot.PriceScale,
+		Price:      snapshot.Price,
 	}}, nil
 }
