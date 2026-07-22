@@ -16,6 +16,7 @@
 - 현재 거래 로직과 구현 공백을 분석했다.
 - GitHub 저장소 `PARKNAMSU/auto-stock-trading`에 구현 백로그 이슈 #1~#16을 등록했다.
 - GitHub에 `priority:P0`, `priority:P1`, `priority:P2`, `priority:P3` 라벨을 추가했다.
+- 토스증권 공식 AI용 문서와 OpenAPI 정본을 루트의 `toss-doc`에 저장하고 세션용 색인을 추가했다.
 - 테스트를 외부 테스트 패키지 구조로 이전했다.
   - `test/config` (`config_test`)
   - `test/risk` (`risk_test`)
