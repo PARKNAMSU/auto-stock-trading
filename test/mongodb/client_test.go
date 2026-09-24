@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"auto-stock-trading/internal/mongodb"
+	"auto-stock-trading/internal/external/mongodb"
 )
 
 func settings(uri string) mongodb.Config {

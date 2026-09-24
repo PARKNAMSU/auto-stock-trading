@@ -55,9 +55,20 @@
   - 실제 Ping, 취소된 컨텍스트, 동시/반복 Close, 종료 후 Ping 실패를 검증했다.
   - 검증에 사용한 테스트 컨테이너는 중지/제거했다. 개발 볼륨은 변경하지 않았다.
 
+- 이슈 #17 후속 구조 정리로 MongoDB와 토스증권 클라이언트를 `internal/external/mongodb`, `internal/external/tossinvest`로 이동했다.
+  - 애플리케이션, 설정, 실주문 골격 및 테스트의 import 경로와 README를 갱신했다.
+  - 클라이언트 동작과 공개 API, `test/<package>` 테스트 위치는 유지했다.
+  - `gofmt`, `go test ./...`, `git diff --check`를 통과했다. 실제 MongoDB 통합 테스트는 이번 경로 이동에서는 재실행하지 않았다.
+- 이슈 #17 후속으로 MongoDB 전용 설정을 `internal/external/mongodb/config.go`로 모았다.
+  - `Config`, 비밀값 비노출 포맷, 기본값, 환경변수 로딩과 검증을 MongoDB 패키지가 관리한다.
+  - `config.Load()`는 `APP_ENV`를 결정한 뒤 `mongodb.LoadConfig(environment)`를 호출해 전체 설정을 조합한다.
+  - MongoDB 설정 테스트는 `test/mongodb/config_test.go`로 이동하고, `test/config`에는 설정 조합과 오류 전달 테스트를 유지했다.
+  - `gofmt`, `go test ./...`, `git diff --check`가 통과했다. 실제 DB 통합 테스트는 설정 책임 이동에서 재실행하지 않았다.
+
 ## 현재 상태
 
-- 이슈 #17 구현은 작업 트리에 있으며 아직 커밋/푸시하지 않았다. GitHub 이슈도 닫지 않았다.
+- 이슈 #17 MongoDB 기반 구현은 커밋 `3b6126c`로 저장되어 있다.
+- `internal/external` 패키지 분리 및 MongoDB 설정 책임 이동은 작업 트리에 있으며 아직 커밋/푸시하지 않았다.
 - MongoDB 저장 데이터/데이터베이스·컬렉션·인덱스·통계 스키마는 설계하지 않았다.
 - 운영 서버의 인증/TLS 및 SRV DNS 환경은 별도 배포 검증이 필요하다. SRV URI 해석은 드라이버/시스템 DNS 제한 시간을 따른다.
 - 이슈 #2 구현은 커밋 `623e2e8`로 `origin/main`에 반영되었다.
@@ -72,7 +83,7 @@
 ## 권장 다음 작업
 
 1. GitHub의 열린 `priority:P0` 이슈와 선행관계를 확인한다.
-2. 이슈 #17 변경사항을 검토하고, 커밋/푸시는 사용자 요청 시 진행한다.
+2. 이슈 #17 후속 외부 패키지 분리 및 MongoDB 설정 책임 이동을 검토하고, 커밋/푸시는 사용자 요청 시 진행한다.
 3. 수집된 가격 이력에 실제 전략 점수를 계산하는 이슈 #4를 진행한다.
 4. 공식 API에 없는 섹터 데이터를 제공할 데이터 소스를 결정한다.
 5. 각 작업 후 테스트를 추가하고 `go test ./...`를 실행한다.

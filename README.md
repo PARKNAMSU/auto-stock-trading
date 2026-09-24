@@ -14,8 +14,13 @@
 - `internal/strategy`: 매매 전략
 - `internal/risk`: 주문 전 위험 검사
 - `internal/trading`: 전략 실행과 주문 처리 흐름
-- `internal/tossinvest`: 토스증권 Open API 어댑터
-- `internal/mongodb`: MongoDB 접속, Ping 및 종료 처리
+- `internal/external/tossinvest`: 토스증권 Open API 어댑터
+- `internal/external/mongodb`: MongoDB 접속, Ping 및 종료 처리
+- `internal/marketdata`: 시장 데이터 수집 흐름과 스냅샷 생성
+
+외부 시스템 접속 구현은 `internal/external` 아래의 서비스별 패키지로 구분합니다. `domain`, `strategy`, `risk`는 외부 패키지를 직접 참조하지 않습니다. 테스트는 `test/<package>` 위치와 `<package>_test` 패키지명을 유지합니다.
+
+MongoDB 전용 설정 타입, 기본값, `MONGODB_*` 환경변수 로딩과 검증은 `internal/external/mongodb/config.go`에서 관리합니다. 애플리케이션의 `config` 패키지는 `APP_ENV`를 결정한 뒤 `mongodb.LoadConfig(environment)`를 호출해 전체 설정을 조합합니다.
 
 ## 실행
 

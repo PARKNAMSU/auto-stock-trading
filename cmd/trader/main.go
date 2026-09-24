@@ -12,11 +12,11 @@ import (
 
 	"auto-stock-trading/internal/config"
 	"auto-stock-trading/internal/domain"
+	"auto-stock-trading/internal/external/mongodb"
+	"auto-stock-trading/internal/external/tossinvest"
 	"auto-stock-trading/internal/marketdata"
-	"auto-stock-trading/internal/mongodb"
 	"auto-stock-trading/internal/risk"
 	"auto-stock-trading/internal/strategy"
-	"auto-stock-trading/internal/tossinvest"
 	"auto-stock-trading/internal/trading"
 )
 

@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 
-	"auto-stock-trading/internal/mongodb"
+	"auto-stock-trading/internal/external/mongodb"
 )
 
 const (
@@ -55,7 +55,7 @@ func Load() (Config, error) {
 		return Config{}, fmt.Errorf("unsupported TRADING_MARKET %q; use us or kr", cfg.TradingMarket)
 	}
 
-	mongoConfig, err := loadMongoDB(cfg.Environment)
+	mongoConfig, err := mongodb.LoadConfig(cfg.Environment)
 	if err != nil {
 		return Config{}, err
 	}

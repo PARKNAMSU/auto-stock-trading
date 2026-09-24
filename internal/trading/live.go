@@ -6,7 +6,7 @@ import (
 	"errors"
 
 	"auto-stock-trading/internal/domain"
-	"auto-stock-trading/internal/tossinvest"
+	"auto-stock-trading/internal/external/tossinvest"
 )
 
 // ErrLiveExecutionNotImplemented는 실제 주문 전송 로직이 아직 연결되지 않았음을 나타냅니다.

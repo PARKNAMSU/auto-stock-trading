@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"auto-stock-trading/internal/domain"
-	"auto-stock-trading/internal/tossinvest"
+	"auto-stock-trading/internal/external/tossinvest"
 	"auto-stock-trading/internal/trading"
 )
 

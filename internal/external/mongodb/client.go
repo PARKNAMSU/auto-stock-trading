@@ -5,8 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
-	"strings"
 	"sync"
 	"time"
 
@@ -14,33 +12,6 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
-
-type Config struct {
-	URI              string `json:"-"`
-	ConnectTimeout   time.Duration
-	OperationTimeout time.Duration
-	ShutdownTimeout  time.Duration
-	MinPoolSize      uint64
-	MaxPoolSize      uint64
-}
-
-// 설정 전체를 포맷하거나 구조화 로그로 출력해도 URI는 노출하지 않습니다.
-func (Config) String() string         { return "MongoDB configuration (URI redacted)" }
-func (c Config) GoString() string     { return c.String() }
-func (c Config) LogValue() slog.Value { return slog.StringValue(c.String()) }
-
-func (c Config) Validate() error {
-	if !strings.HasPrefix(c.URI, "mongodb://") && !strings.HasPrefix(c.URI, "mongodb+srv://") {
-		return errors.New("MONGODB_URI must use mongodb:// or mongodb+srv://")
-	}
-	if c.ConnectTimeout <= 0 || c.OperationTimeout <= 0 || c.ShutdownTimeout <= 0 {
-		return errors.New("MongoDB timeouts must be positive")
-	}
-	if c.MaxPoolSize == 0 || c.MinPoolSize > c.MaxPoolSize {
-		return errors.New("MongoDB pool requires 0 <= MONGODB_MIN_POOL_SIZE <= MONGODB_MAX_POOL_SIZE and a positive maximum")
-	}
-	return nil
-}
 
 type Client struct {
 	client           *mongo.Client

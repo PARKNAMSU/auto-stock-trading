@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"auto-stock-trading/internal/tossinvest"
+	"auto-stock-trading/internal/external/tossinvest"
 )
 
 func TestClientAuthenticatesRequestAndAddsAccount(t *testing.T) {
