@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+
+	"auto-stock-trading/internal/mongodb"
 )
 
 const (
@@ -15,6 +17,8 @@ const (
 )
 
 type Config struct {
+	Environment    string
+	MongoDB        mongodb.Config
 	TradingMode    string
 	TradingMarket  string
 	ClientID       string
@@ -26,6 +30,7 @@ type Config struct {
 
 func Load() (Config, error) {
 	cfg := Config{
+		Environment:    valueOrDefault("APP_ENV", "development"),
 		TradingMode:    valueOrDefault("TRADING_MODE", DryRunMode),
 		TradingMarket:  valueOrDefault("TRADING_MARKET", DefaultMarket),
 		ClientID:       os.Getenv("TOSSINVEST_CLIENT_ID"),
@@ -50,6 +55,11 @@ func Load() (Config, error) {
 		return Config{}, fmt.Errorf("unsupported TRADING_MARKET %q; use us or kr", cfg.TradingMarket)
 	}
 
+	mongoConfig, err := loadMongoDB(cfg.Environment)
+	if err != nil {
+		return Config{}, err
+	}
+	cfg.MongoDB = mongoConfig
 	return cfg, nil
 }
 
