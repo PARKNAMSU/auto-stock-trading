@@ -13,6 +13,7 @@ import (
 	"auto-stock-trading/internal/config"
 	"auto-stock-trading/internal/domain"
 	"auto-stock-trading/internal/external/mongodb"
+	"auto-stock-trading/internal/external/sector"
 	"auto-stock-trading/internal/external/tossinvest"
 	"auto-stock-trading/internal/marketdata"
 	"auto-stock-trading/internal/risk"
@@ -53,7 +54,9 @@ func run(ctx context.Context, cfg config.Config, logger *slog.Logger) (runErr er
 	if err != nil {
 		return fmt.Errorf("invalid Toss Securities API configuration: %w", err)
 	}
-	collector, err := marketdata.NewCollector(apiClient, marketdata.Config{})
+	collector, err := marketdata.NewCollector(apiClient, marketdata.Config{
+		SectorResolver: sector.NewPlaceholderResolver(),
+	})
 	if err != nil {
 		return fmt.Errorf("create market data collector: %w", err)
 	}

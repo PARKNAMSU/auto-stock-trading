@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"auto-stock-trading/internal/domain"
+	"auto-stock-trading/internal/external/sector"
 	"auto-stock-trading/internal/marketdata"
 )
 
@@ -113,6 +114,25 @@ func TestSnapshotIdentifiesStaleAndIncompleteData(t *testing.T) {
 	}
 }
 
+func TestSnapshotMarksPlaceholderSectorAsMissing(t *testing.T) {
+	now := time.Date(2026, 3, 25, 9, 35, 0, 0, time.FixedZone("KST", 9*60*60))
+	client := stockClient("005930", "KRW", "72000", "5919637922", "STOCK", "2026-03-25T09:30:00+09:00", []string{
+		candle("2026-03-25T09:00:00+09:00", "71600", "72300", "71500", "72000", "300", "KRW"),
+	})
+	collector := newCollector(t, client, marketdata.Config{
+		CandleCount: 1, AverageVolumeDays: 1, Now: func() time.Time { return now },
+		SectorResolver: sector.NewPlaceholderResolver(),
+	})
+
+	snapshot, err := collector.Snapshot(context.Background(), domain.MarketKR, "005930")
+	if err != nil {
+		t.Fatalf("Snapshot(): %v", err)
+	}
+	if snapshot.Sector != "" || !contains(snapshot.MissingFields, "sector") || snapshot.Complete() {
+		t.Fatalf("placeholder sector was not reported as missing: %+v", snapshot)
+	}
+}
+
 func TestSnapshotReturnsAPIError(t *testing.T) {
 	want := errors.New("prices unavailable")
 	client := &fakeClient{errors: map[string]error{"/api/v1/prices": want}}
@@ -128,6 +148,15 @@ type fixedSector string
 
 func (s fixedSector) ResolveSector(context.Context, domain.Market, string) (string, error) {
 	return string(s), nil
+}
+
+func contains(fields []string, want string) bool {
+	for _, field := range fields {
+		if field == want {
+			return true
+		}
+	}
+	return false
 }
 
 type fakeClient struct {

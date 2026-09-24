@@ -16,6 +16,7 @@
 - `internal/trading`: 전략 실행과 주문 처리 흐름
 - `internal/external/tossinvest`: 토스증권 Open API 어댑터
 - `internal/external/mongodb`: MongoDB 접속, Ping 및 종료 처리
+- `internal/external/sector`: 섹터 분류 공급자 어댑터 자리
 - `internal/marketdata`: 시장 데이터 수집 흐름과 스냅샷 생성
 
 외부 시스템 접속 구현은 `internal/external` 아래의 서비스별 패키지로 구분합니다. `domain`, `strategy`, `risk`는 외부 패키지를 직접 참조하지 않습니다. 테스트는 `test/<package>` 위치와 `<package>_test` 패키지명을 유지합니다.
@@ -42,6 +43,8 @@ TRADING_MARKET=kr go run ./cmd/trader
 실행 시 토스증권 시장 거래대금 랭킹에서 대상 종목을 조회하고, 현재가·종목 정보·수정 일봉을 수집해 전략 엔진에 전달합니다. `TOSSINVEST_CLIENT_ID`와 `TOSSINVEST_CLIENT_SECRET`이 필요합니다. 가격은 KRW는 원, USD는 센트 단위로 정규화되고 `PriceScale`에 각각 1과 100이 기록됩니다. 주봉은 공식 API의 수정 일봉을 ISO 주 단위로 집계합니다.
 
 현재 공식 토스증권 OpenAPI에는 섹터 정보가 없으므로 별도 `SectorResolver`를 설정하지 않으면 스냅샷의 `MissingFields`에 `sector`가 기록됩니다. 현재가 시각이 신선도 기준을 넘거나 필수 데이터가 비어 있으면 경고 로그로 명확히 표시됩니다.
+
+기본 실행에는 `internal/external/sector.PlaceholderResolver`를 연결해 두었습니다. 실제 분류 공급자가 정해지지 않아 임의 섹터를 만들지 않으며, 스냅샷에 `sector` 결측 경고가 계속 표시됩니다. 공급자와 미국·한국 간 분류 체계 연결은 [이슈 #25](https://github.com/PARKNAMSU/auto-stock-trading/issues/25)에서 후속 구현합니다.
 
 ## 테스트
 
